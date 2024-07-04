@@ -1,0 +1,70 @@
+[versions]
+
+#https://developer.android.com/jetpack/androidx/releases/activity
+activity = "1.9.0"
+
+#http://Nothing
+agp = "8.5.0"
+
+#https://developer.android.com/jetpack/androidx/releases/core
+corektx = "1.13.1"
+
+#https://developer.android.com/jetpack/compose/bom/bom-mapping
+compose-core = "1.6.8"
+
+#https://github.com/JetBrains/kotlin
+kotlin = "2.0.0"
+
+#https://github.com/pinterest/ktlint
+ktlint = "1.3.0"
+
+#https://github.com/vanniktech/gradle-maven-publish-plugin
+maven = "0.29.0"
+
+#https://github.com/diffplug/spotless
+spotless = "6.25.0"
+
+
+
+[plugins]
+application = { id = "com.android.application", version.ref = "agp" }
+compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+library = { id = "com.android.library", version.ref = "agp" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+maven = { id = "com.vanniktech.maven.publish", version.ref = "maven" }
+
+
+
+
+[libraries]
+
+#https://developer.android.com/jetpack/androidx/releases/activity
+activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activity" }
+activity-core = { group = "androidx.activity", name = "activity-ktx", version.ref = "activity" }
+
+#https://developer.android.com/jetpack/androidx/releases/core
+core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "corektx" }
+
+#https://developer.android.com/jetpack/androidx/releases/compose
+compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "compose-core" }
+compose-graphics = { group = "androidx.compose.ui", name = "ui-graphics", version.ref = "compose-core" }
+compose-material = { group = "androidx.compose.material", name = "material", version.ref = "compose-core" }
+compose-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview", version.ref = "compose-core" }
+compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "compose-core" }
+compose-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4", version.ref = "compose-core" }
+compose-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest", version.ref = "compose-core" }
+compose-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "compose-core" }
+compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "compose-core" }
+
+#http://Nothing
+gradlePlugin-android = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
+
+#https://github.com/JetBrains/kotlin
+gradlePlugin-kotlin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+
+#https://github.com/vanniktech/gradle-maven-publish-plugin
+gradlePlugin-maven = { group = "com.vanniktech", name = "gradle-maven-publish-plugin", version.ref = "maven" }
+
+#https://github.com/diffplug/spotless
+gradlePlugin-spotless = { group = "com.diffplug.spotless", name = "spotless-plugin-gradle", version.ref = "spotless" }
