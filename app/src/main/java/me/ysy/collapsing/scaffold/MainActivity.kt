@@ -23,8 +23,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
@@ -80,19 +82,24 @@ private val colorList = listOf(
 )
 
 @Composable
-private fun rememberRandomColor(key: String): Color = remember(key) {
-    colorList[Random.nextInt(0, 10)]
+private fun rememberRandomColor(list: MutableList<Color>): Color = remember(list.size) {
+    colorList[Random.nextInt(0, list.size)].apply { list.remove(this) }
 }
 
-@Composable
-private fun CPSwipeRow(tag: Any) {
-    val centerBgColor = rememberRandomColor("${tag}centerBgColor")
-    val startBgColor1 = rememberRandomColor("${tag}startBgColor1")
-    val endBgColor1 = rememberRandomColor("${tag}endBgColor1")
-    val endBgColor2 = rememberRandomColor("${tag}endBgColor2")
-    key(tag) {
-        val state = rememberSwipeRowState()
+private data class RowInfo(val state: SwipeRowState, val list: MutableList<Color>)
 
+private val LocalRowInfo = compositionLocalOf<RowInfo> { error("") }
+
+@Composable
+private fun CPSwipeRow(
+    tag: Any,
+    state: SwipeRowState = rememberSwipeRowState(),
+    startContent: (@Composable () -> Unit)? = { CPStartContent() },
+    endContent: (@Composable () -> Unit)? = { CPEndContent() },
+) {
+    val list: MutableList<Color> = colorList.toMutableList()
+
+    key(tag) {
         val eventFlow = LocalMainEventFlow.current
 
         LaunchedEffect(Unit) {
@@ -101,26 +108,34 @@ private fun CPSwipeRow(tag: Any) {
                 .launchIn(this)
         }
 
-        SwipeRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            state = state,
-            startContent = { CPStartContent(state, startBgColor1) },
-            centerContent = { CPCenterContent(state, centerBgColor) },
-            endContent = { CPEndContent(state, endBgColor1, endBgColor2) },
-        )
+        val rowInfo = remember(state, list) {
+            RowInfo(state, list)
+        }
+
+        CompositionLocalProvider(LocalRowInfo provides rowInfo) {
+            SwipeRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                state = state,
+                startContent = startContent,
+                centerContent = { CPCenterContent() },
+                endContent = endContent,
+            )
+        }
     }
 }
 
 @Composable
-private fun CPStartContent(state: SwipeRowState, bgColor: Color) {
+private fun CPStartContent() {
+    val (state, list) = LocalRowInfo.current
+
     val scope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
             .clickable { state.animateTo(scope, DragAnchors.End) }
-            .background(bgColor)
+            .background(rememberRandomColor(list))
             .fillMaxHeight()
             .width(45.dp),
         contentAlignment = Alignment.Center,
@@ -130,7 +145,9 @@ private fun CPStartContent(state: SwipeRowState, bgColor: Color) {
 }
 
 @Composable
-private fun CPCenterContent(state: SwipeRowState, bgColor: Color) {
+private fun CPCenterContent() {
+    val (state, list) = LocalRowInfo.current
+
     val anchorState = remember(state.offsetInfoState) {
         derivedStateOf { "anchor:${state.offsetInfoState.value.anchor.javaClass.simpleName}" }
     }
@@ -145,7 +162,7 @@ private fun CPCenterContent(state: SwipeRowState, bgColor: Color) {
 
     Column(
         modifier = Modifier
-            .background(bgColor)
+            .background(rememberRandomColor(list))
             .fillMaxWidth()
             .height(80.dp),
         verticalArrangement = Arrangement.SpaceAround,
@@ -168,7 +185,8 @@ private fun CPText(text: String) {
 }
 
 @Composable
-private fun CPEndContent(state: SwipeRowState, bgColor1: Color, bgColor2: Color) {
+private fun CPEndContent() {
+    val (state, list) = LocalRowInfo.current
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
@@ -182,7 +200,7 @@ private fun CPEndContent(state: SwipeRowState, bgColor1: Color, bgColor2: Color)
                             .show()
                     }
                 }
-                .background(bgColor1)
+                .background(rememberRandomColor(list))
                 .fillMaxHeight()
                 .aspectRatio(1f),
             contentAlignment = Alignment.Center,
@@ -192,7 +210,7 @@ private fun CPEndContent(state: SwipeRowState, bgColor1: Color, bgColor2: Color)
         Box(
             modifier = Modifier
                 .clickable { state.animateTo(scope, DragAnchors.Center) }
-                .background(bgColor2)
+                .background(rememberRandomColor(list))
                 .fillMaxHeight()
                 .aspectRatio(1f),
             contentAlignment = Alignment.Center,
@@ -205,9 +223,10 @@ private fun CPEndContent(state: SwipeRowState, bgColor1: Color, bgColor2: Color)
 @Composable
 private fun CPMainPage() {
     Column(modifier = Modifier.fillMaxSize()) {
-        repeat(6) {
-            CPSwipeRow(it)
-        }
+        CPSwipeRow(1, startContent = null)
+        CPSwipeRow(2, endContent = null)
+        CPSwipeRow(5, state = rememberSwipeRowState(positionalThreshold = { it * 0.2f }))
+        CPSwipeRow(6, state = rememberSwipeRowState(velocityThreshold = { 1000f }))
 
         Spacer(modifier = Modifier.weight(1f))
 

@@ -6,6 +6,7 @@ import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.anchoredDraggable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.remember
@@ -20,14 +21,6 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 public fun rememberSwipeRowState(
-    draggableState: AnchoredDraggableState<DragAnchors> = rememberAnchoredDraggableState(),
-): SwipeRowState {
-    return SwipeRowState(draggableState)
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-public fun rememberAnchoredDraggableState(
     // 初始锚点位置
     initialValue: DragAnchors = DragAnchors.Center,
     // 位置阈值,0.5f表示50%时进行锚点切换
@@ -36,23 +29,25 @@ public fun rememberAnchoredDraggableState(
     velocityThreshold: () -> Float = { 200f },
     // 动画配置
     animationSpec: SpringSpec<Float> = SpringSpec(),
-): AnchoredDraggableState<DragAnchors> {
-    return remember {
-        AnchoredDraggableState(
-            initialValue = initialValue,
-            positionalThreshold = positionalThreshold,
-            velocityThreshold = velocityThreshold,
-            animationSpec = animationSpec,
-        )
-    }
+): SwipeRowState = remember(initialValue, positionalThreshold, velocityThreshold, animationSpec) {
+    val draggableState = AnchoredDraggableState(
+        initialValue = initialValue,
+        positionalThreshold = positionalThreshold,
+        velocityThreshold = velocityThreshold,
+        animationSpec = animationSpec,
+    )
+
+    SwipeRowState(draggableState)
 }
 
 private fun SubcomposeMeasureScope.measure(
     constraints: Constraints,
     slotName: String,
-    content: @Composable () -> Unit,
+    content: (@Composable () -> Unit)?,
     widthState: MutableIntState,
 ): List<Placeable> {
+    if (content == null) return emptyList()
+
     val placeableList = subcompose(slotName, content).map {
         it.measure(constraints)
     }
@@ -67,14 +62,33 @@ private fun SubcomposeMeasureScope.measure(
 public fun SwipeRow(
     modifier: Modifier = Modifier,
     state: SwipeRowState = rememberSwipeRowState(),
-    startContent: @Composable () -> Unit = { },
-    endContent: @Composable () -> Unit = {},
+    startContent: (@Composable () -> Unit)? = null,
+    endContent: (@Composable () -> Unit)? = null,
     centerContent: @Composable () -> Unit,
 ) {
-    val draggableAnchors = DraggableAnchors {
-        DragAnchors.Start at state.startWidthState.intValue * 1f
-        DragAnchors.Center at 0f
-        DragAnchors.End at state.endWidthState.intValue * -1f
+    val draggableAnchors: DraggableAnchors<DragAnchors> = when {
+        startContent != null && endContent != null -> DraggableAnchors {
+            DragAnchors.Start at state.startWidthState.intValue * 1f
+            DragAnchors.Center at 0f
+            DragAnchors.End at state.endWidthState.intValue * -1f
+        }
+
+        startContent != null -> DraggableAnchors {
+            DragAnchors.Start at state.startWidthState.intValue * 1f
+            DragAnchors.Center at 0f
+        }
+
+        endContent != null -> DraggableAnchors {
+            DragAnchors.Center at 0f
+            DragAnchors.End at state.endWidthState.intValue * -1f
+        }
+
+        else -> {
+            Box(modifier = modifier) {
+                centerContent()
+            }
+            return
+        }
     }
 
     state.draggableState.updateAnchors(draggableAnchors)
@@ -115,16 +129,20 @@ public fun SwipeRow(
         layout(constraints.maxWidth, centerHeight) {
             val offsetX = state.swipeOffsetState.floatValue.roundToInt()
 
-            val startX = state.startWidthState.intValue * -1 + offsetX
+            if (startPlaceableList.isNotEmpty()) {
+                val startX = state.startWidthState.intValue * -1 + offsetX
 
-            for (placeable in startPlaceableList) {
-                placeable.place(startX, 0)
+                for (placeable in startPlaceableList) {
+                    placeable.place(startX, 0)
+                }
             }
 
-            val endX = state.centerWidthState.intValue + offsetX
+            if (endPlaceableList.isNotEmpty()) {
+                val endX = state.centerWidthState.intValue + offsetX
 
-            for (placeable in endPlaceableList) {
-                placeable.place(endX, 0)
+                for (placeable in endPlaceableList) {
+                    placeable.place(endX, 0)
+                }
             }
 
             for (placeable in centerPlaceableList) {
