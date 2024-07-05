@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -28,7 +28,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -92,37 +91,34 @@ private val LocalRowInfo = compositionLocalOf<RowInfo> { error("") }
 
 @Composable
 private fun CPSwipeRow(
-    tag: Any,
     state: SwipeRowState = rememberSwipeRowState(),
     startContent: (@Composable () -> Unit)? = { CPStartContent() },
     endContent: (@Composable () -> Unit)? = { CPEndContent() },
 ) {
     val list: MutableList<Color> = colorList.toMutableList()
 
-    key(tag) {
-        val eventFlow = LocalMainEventFlow.current
+    val eventFlow = LocalMainEventFlow.current
 
-        LaunchedEffect(Unit) {
-            eventFlow
-                .onEach { state.animateTo(it.dragAnchors) }
-                .launchIn(this)
-        }
+    LaunchedEffect(Unit) {
+        eventFlow
+            .onEach { state.animateTo(it.dragAnchors) }
+            .launchIn(this)
+    }
 
-        val rowInfo = remember(state, list) {
-            RowInfo(state, list)
-        }
+    val rowInfo = remember(state, list) {
+        RowInfo(state, list)
+    }
 
-        CompositionLocalProvider(LocalRowInfo provides rowInfo) {
-            SwipeRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                state = state,
-                startContent = startContent,
-                centerContent = { CPCenterContent() },
-                endContent = endContent,
-            )
-        }
+    CompositionLocalProvider(LocalRowInfo provides rowInfo) {
+        SwipeRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            state = state,
+            startContent = startContent,
+            centerContent = { CPCenterContent() },
+            endContent = endContent,
+        )
     }
 }
 
@@ -163,6 +159,7 @@ private fun CPCenterContent() {
     Column(
         modifier = Modifier
             .background(rememberRandomColor(list))
+            .clickable {  }
             .fillMaxWidth()
             .height(80.dp),
         verticalArrangement = Arrangement.SpaceAround,
@@ -222,18 +219,31 @@ private fun CPEndContent() {
 
 @Composable
 private fun CPMainPage() {
-    Column(modifier = Modifier.fillMaxSize()) {
-        CPSwipeRow(1, startContent = null)
-        CPSwipeRow(2, endContent = null)
-        CPSwipeRow(5, state = rememberSwipeRowState(positionalThreshold = { it * 0.2f }))
-        CPSwipeRow(6, state = rememberSwipeRowState(velocityThreshold = { 1000f }))
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-            CPButton("Open Start", MainEvent.OpenStart)
-            CPButton("Close All", MainEvent.CloseAll)
-            CPButton("Open End", MainEvent.OpenEnd)
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
+        item("top") {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                CPButton("Open Start", MainEvent.OpenStart)
+                CPButton("Close All", MainEvent.CloseAll)
+                CPButton("Open End", MainEvent.OpenEnd)
+            }
+        }
+        item(key = 1) {
+            CPSwipeRow(startContent = null)
+        }
+        item(key = 2) {
+            CPSwipeRow(endContent = null)
+        }
+        item(key = 3) {
+            CPSwipeRow()
+        }
+        item(key = 4) {
+            CPSwipeRow(state = rememberSwipeRowState(positionalThreshold = { it * 0.2f }))
+        }
+        item(key = 5) {
+            CPSwipeRow(state = rememberSwipeRowState(velocityThreshold = { 1000f }))
         }
     }
 }
