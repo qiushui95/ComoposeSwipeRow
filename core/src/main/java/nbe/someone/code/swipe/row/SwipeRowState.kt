@@ -68,19 +68,15 @@ public class SwipeRowState(internal val draggableState: AnchoredDraggableState<D
     public fun animateTo(
         scope: CoroutineScope,
         anchor: DragAnchors,
-        velocity: Float = draggableState.lastVelocity,
         onEnd: suspend () -> Unit = { },
     ) {
         scope.launch {
-            launch { animateTo(anchor, velocity) }.join()
+            launch { animateTo(anchor) }.join()
             onEnd()
         }
     }
 
-    public suspend fun animateTo(
-        anchor: DragAnchors,
-        velocity: Float = draggableState.lastVelocity,
-    ) {
-        draggableState.animateTo(anchor, velocity)
+    public suspend fun animateTo(anchor: DragAnchors) {
+        draggableState.animateTo(anchor)
     }
 }

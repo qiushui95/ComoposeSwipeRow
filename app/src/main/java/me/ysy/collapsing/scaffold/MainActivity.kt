@@ -159,7 +159,7 @@ private fun CPCenterContent() {
     Column(
         modifier = Modifier
             .background(rememberRandomColor(list))
-            .clickable {  }
+            .clickable { }
             .fillMaxWidth()
             .height(80.dp),
         verticalArrangement = Arrangement.SpaceAround,
@@ -223,7 +223,7 @@ private fun CPMainPage() {
         item("top") {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround
+                horizontalArrangement = Arrangement.SpaceAround,
             ) {
                 CPButton("Open Start", MainEvent.OpenStart)
                 CPButton("Close All", MainEvent.CloseAll)

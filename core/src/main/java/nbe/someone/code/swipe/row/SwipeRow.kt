@@ -1,6 +1,8 @@
 package nbe.someone.code.swipe.row
 
+import androidx.compose.animation.core.DecayAnimationSpec
 import androidx.compose.animation.core.SpringSpec
+import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
@@ -28,13 +30,20 @@ public fun rememberSwipeRowState(
     // 速度阈值,100表示速度达到100像素/s时进行锚点切换
     velocityThreshold: () -> Float = { 200f },
     // 动画配置
-    animationSpec: SpringSpec<Float> = SpringSpec(),
-): SwipeRowState = remember(initialValue, positionalThreshold, velocityThreshold, animationSpec) {
+    snapAnimationSpec: SpringSpec<Float> = SpringSpec(),
+    decayAnimationSpec: DecayAnimationSpec<Float> = exponentialDecay(),
+): SwipeRowState = remember(
+    initialValue,
+    positionalThreshold,
+    velocityThreshold,
+    snapAnimationSpec,
+) {
     val draggableState = AnchoredDraggableState(
         initialValue = initialValue,
         positionalThreshold = positionalThreshold,
         velocityThreshold = velocityThreshold,
-        animationSpec = animationSpec,
+        snapAnimationSpec = snapAnimationSpec,
+        decayAnimationSpec = decayAnimationSpec,
     )
 
     SwipeRowState(draggableState)
