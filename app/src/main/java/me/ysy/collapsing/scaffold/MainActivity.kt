@@ -240,10 +240,10 @@ private fun CPMainPage() {
             CPSwipeRow()
         }
         item(key = 4) {
-            CPSwipeRow(state = rememberSwipeRowState(positionalThreshold = { it * 0.2f }))
+            CPSwipeRow(state = rememberSwipeRowState())
         }
         item(key = 5) {
-            CPSwipeRow(state = rememberSwipeRowState(velocityThreshold = { 1000f }))
+            CPSwipeRow(state = rememberSwipeRowState())
         }
     }
 }

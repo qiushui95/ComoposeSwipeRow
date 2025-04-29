@@ -29,11 +29,11 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension
  */
 internal fun Project.configureKotlinAndroid(
     commonExtension: CommonExtension<*, *, *, *, *, *>,
-    javaVersion: JavaVersion = JavaVersion.VERSION_17,
+    javaVersion: JavaVersion = JavaVersion.VERSION_21,
 ) {
 
     commonExtension.apply {
-        compileSdk = 34
+        compileSdk = 35
 
 
         defaultConfig {
@@ -48,7 +48,7 @@ internal fun Project.configureKotlinAndroid(
 }
 
 internal fun Project.configureKotlin(
-    jvmTarget: JvmTarget = JvmTarget.JVM_17
+    jvmTarget: JvmTarget = JvmTarget.JVM_21
 ) {
     kotlinOptions {
         compilerOptions {

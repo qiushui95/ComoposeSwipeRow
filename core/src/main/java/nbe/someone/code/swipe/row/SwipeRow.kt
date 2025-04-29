@@ -1,9 +1,5 @@
 package nbe.someone.code.swipe.row
 
-import androidx.compose.animation.core.DecayAnimationSpec
-import androidx.compose.animation.core.SpringSpec
-import androidx.compose.animation.core.exponentialDecay
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.Orientation
@@ -20,31 +16,12 @@ import androidx.compose.ui.layout.SubcomposeMeasureScope
 import androidx.compose.ui.unit.Constraints
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 public fun rememberSwipeRowState(
     // 初始锚点位置
     initialValue: DragAnchors = DragAnchors.Center,
-    // 位置阈值,0.5f表示50%时进行锚点切换
-    positionalThreshold: (distance: Float) -> Float = { distance -> distance * 0.5f },
-    // 速度阈值,100表示速度达到100像素/s时进行锚点切换
-    velocityThreshold: () -> Float = { 200f },
-    // 动画配置
-    snapAnimationSpec: SpringSpec<Float> = SpringSpec(),
-    decayAnimationSpec: DecayAnimationSpec<Float> = exponentialDecay(),
-): SwipeRowState = remember(
-    initialValue,
-    positionalThreshold,
-    velocityThreshold,
-    snapAnimationSpec,
-) {
-    val draggableState = AnchoredDraggableState(
-        initialValue = initialValue,
-        positionalThreshold = positionalThreshold,
-        velocityThreshold = velocityThreshold,
-        snapAnimationSpec = snapAnimationSpec,
-        decayAnimationSpec = decayAnimationSpec,
-    )
+): SwipeRowState = remember(initialValue) {
+    val draggableState = AnchoredDraggableState(initialValue = initialValue)
 
     SwipeRowState(draggableState)
 }
@@ -66,16 +43,12 @@ private fun SubcomposeMeasureScope.measure(
     return placeableList
 }
 
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-public fun SwipeRow(
-    modifier: Modifier = Modifier,
-    state: SwipeRowState = rememberSwipeRowState(),
-    startContent: (@Composable () -> Unit)? = null,
-    endContent: (@Composable () -> Unit)? = null,
-    centerContent: @Composable () -> Unit,
-) {
-    val draggableAnchors: DraggableAnchors<DragAnchors> = when {
+private fun getDraggableAnchors(
+    state: SwipeRowState,
+    startContent: (@Composable () -> Unit)?,
+    endContent: (@Composable () -> Unit)?,
+): DraggableAnchors<DragAnchors>? {
+    return when {
         startContent != null && endContent != null -> DraggableAnchors {
             DragAnchors.Start at state.startWidthState.intValue * 1f
             DragAnchors.Center at 0f
@@ -92,12 +65,23 @@ public fun SwipeRow(
             DragAnchors.End at state.endWidthState.intValue * -1f
         }
 
-        else -> {
-            Box(modifier = modifier) {
-                centerContent()
-            }
-            return
-        }
+        else -> null
+    }
+}
+
+@Composable
+public fun SwipeRow(
+    modifier: Modifier = Modifier,
+    state: SwipeRowState = rememberSwipeRowState(),
+    startContent: (@Composable () -> Unit)? = null,
+    endContent: (@Composable () -> Unit)? = null,
+    centerContent: @Composable () -> Unit,
+) {
+    val draggableAnchors = getDraggableAnchors(state, startContent, endContent)
+
+    if (draggableAnchors == null) {
+        Box(modifier = modifier) { centerContent() }
+        return
     }
 
     state.draggableState.updateAnchors(draggableAnchors)

@@ -54,6 +54,8 @@ public class SwipeRowState(internal val draggableState: AnchoredDraggableState<D
     }
 
     private fun checkOffset(offset: Float): Float {
+        if (offset.isNaN()) return 0f
+
         return offset.coerceIn(-endWidthState.intValue * 1f, startWidthState.intValue * 1f)
     }
 
