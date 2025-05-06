@@ -1,6 +1,5 @@
 package nbe.someone.code.swipe.row
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.gestures.snapTo
@@ -14,7 +13,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class)
 @Stable
 public class SwipeRowState(internal val draggableState: AnchoredDraggableState<DragAnchors>) {
     public val dragAnchorsState: State<DragAnchors> by lazy {
@@ -52,6 +50,10 @@ public class SwipeRowState(internal val draggableState: AnchoredDraggableState<D
             SwipeOffsetInfo(anchor, offset.toInt(), total)
         }
     }
+
+    public constructor(initialValue: DragAnchors) : this(
+        AnchoredDraggableState(initialValue = initialValue),
+    )
 
     private fun checkOffset(offset: Float): Float {
         if (offset.isNaN()) return 0f
